@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from MyApp.models import Ingresso, Uscita
+from MyApp.models import Ingresso
 
 
 # Create your views here.
@@ -13,8 +13,8 @@ def homepage(request):
         if form.is_valid():
             durata_turno_ore = form.cleaned_data['durata_turno_ore']
             durata_turno_minuti = form.cleaned_data['durata_turno_minuti']
-            ora_ingresso = form.cleaned_data['ora_ingresso']
-            minuti_ingresso = form.cleaned_data['minuti_ingresso']
+            ora_ingresso = form.cleaned_data['ingresso'].hour
+            minuti_ingresso = form.cleaned_data['ingresso'].minute
             minuti_pausa = form.cleaned_data['minuti_pausa']
 
             print("Durata turno ore:", durata_turno_ore)
