@@ -22,15 +22,27 @@
                         {% csrf_token %}
                         {{ form.as_p }}
                         <div class="text-center">
-                            <input type="submit" class="btn btn-primary" value="Calcola orario di uscita">
+                            <input type="submit" class="btn btn-primary" value="Quando Esco?">
                         </div>
                     </form>
 
-                    {% if uscita %}
-                        <h2 class="text-center mt-4">Uscita:</h2>
-                        <p class="text-center">Orario di Uscita: {{ uscita.ora_uscita }}</p>
-                        <p class="text-center">Minuti di Uscita: {{ uscita.minuti_uscita }}</p>
-                    {% endif %}
+                {% if uscita %}
+                    <h2 class="text-center mt-4">Uscita:</h2>
+                    <p class="text-center">Uscita: {{ uscita|date:"d/m/Y H:i" }}</p>
+                {% endif %}
+
+                {% if messaggio_info %}
+                    <p  class="text-center alert alert-info"><b>{{messaggio_info}}</b></p>
+                {% endif %}
+                {% if messaggio_danger %}
+                    <p  class="text-center alert alert-danger"><b>{{messaggio_danger}}</b></p>
+                {% endif %}
+                {% if messaggio_warning %}
+                    <p  class="text-center alert alert-warning"><b>{{messaggio_warning}}</b></p>
+                {% endif %}
+                {% if messaggio_success %}
+                    <p  class="text-center alert alert-success"><b>{{messaggio_success}}</b></p>
+                {% endif %}
                 </div>
             </div>
         </div>

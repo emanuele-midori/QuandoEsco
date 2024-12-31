@@ -1,8 +1,8 @@
-from datetime import time
-
+from datetime import datetime
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django import forms
 
+now = datetime.now().replace(second=0, microsecond=0)
 
 # Create your models here.
 class Ingresso(forms.Form):
@@ -14,23 +14,18 @@ class Ingresso(forms.Form):
                                              required=False,
                                              initial=0,
                                              validators=[MinValueValidator(0), MaxValueValidator(59)])
-    ingresso = forms.TimeField(label='Ingresso',
-                               required = False,
-                               initial= time(8, 0),
-                               widget=forms.TimeInput(
-                                    attrs={
-                                        'class': 'form-control',  # Bootstrap class
-                                        'type': 'time',  # HTML5 time picker
-                                        }
-                                    )
-                               )
-    minuti_pausa = forms.IntegerField(label='Durata pausa minuti',
-                                      initial= 0,
+    durata_pausa_minuti = forms.IntegerField(label='Durata pausa minuti',
+                                      initial=0,
                                       required=False,
                                       validators=[MinValueValidator(0), MaxValueValidator(180)])
-
-    def __str__(self):
-        return ('Durata turno ore: ' + str(self.durata_turno_ore) +
-                '\ndurata turno minuti: ' + str(self.durata_turno_minuti) +
-                '\nIngresso: ' + str(self.ingresso.hour) + ' e ' + str(self.ingresso.minutes) +
-                '\nPausa: ' + str(self.minuti_pausa))
+    ingresso = forms.DateTimeField(
+        label='Ingresso',
+        required=False,
+        initial=now,  # Data e ora iniziali
+        widget=forms.DateTimeInput(
+            attrs={
+                'class': 'form-control',  # Bootstrap class
+                'type': 'datetime-local',  # HTML5 datetime-local picker
+            }
+        )
+    )

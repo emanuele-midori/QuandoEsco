@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from datetime import datetime, timedelta
 from django.shortcuts import render
 
 from MyApp.models import Ingresso
@@ -6,61 +6,72 @@ from MyApp.models import Ingresso
 
 # Create your views here.
 def homepage(request):
-    ora_uscita = 0
-    minuti_uscita = 0
+    data_uscita = datetime.now()
+    messaggio_info = "Compila il form e premi il pulsante \'Quando Esco?\'"
+    messaggio_success = None
+    messaggio_danger = None
+    messaggio_warning = None
+
     if request.method == 'POST':
         form = Ingresso(request.POST)
         if form.is_valid():
             durata_turno_ore = form.cleaned_data['durata_turno_ore']
             durata_turno_minuti = form.cleaned_data['durata_turno_minuti']
-            ora_ingresso = form.cleaned_data['ingresso'].hour
-            minuti_ingresso = form.cleaned_data['ingresso'].minute
-            minuti_pausa = form.cleaned_data['minuti_pausa']
+            data_ingresso = form.cleaned_data['ingresso']
+            minuti_pausa = form.cleaned_data['durata_pausa_minuti']
 
             print("Durata turno ore:", durata_turno_ore)
             print("Durata turno minuti:", durata_turno_minuti)
-            print("Ora di Ingresso:", ora_ingresso)
-            print("Minuti di Ingresso:", minuti_ingresso)
-            print("Minuti di Pausa:", minuti_pausa)
+            print("Durata pausa minuti:", minuti_pausa)
 
-            # Calcola orario_uscita e minuti_uscita (esempio semplice)
-            if (ora_ingresso is not None and minuti_ingresso is not None and minuti_pausa is not None):
-                # Ora ingresso + Ore turno
+            durata = timedelta(hours=durata_turno_ore, minutes=durata_turno_minuti + minuti_pausa)
+            data_uscita = data_ingresso + durata
 
-                ora_uscita_temp = ora_ingresso + durata_turno_ore
+            print("Ingresso: ", data_ingresso)
+            print("Uscita: ", data_uscita)
 
-                minuti_uscita_temp = minuti_ingresso + durata_turno_minuti + minuti_pausa
+            now = datetime.now()
 
-                if (minuti_uscita_temp < 60):
-                    ora_uscita = ora_uscita_temp
-                    minuti_uscita = minuti_uscita_temp
-                elif (minuti_uscita_temp == 60):
-                    ora_uscita = ora_uscita_temp + 1
-                    minuti_uscita = 0
-                else:
-                    # Calcolo delle ore e dei minuti restanti
-                    ore_aggiuntive = minuti_uscita_temp // 60
-                    ora_uscita = ora_uscita_temp + ore_aggiuntive
-                    minuti_uscita = minuti_uscita_temp % 60
+            print("Now: ", now)
+            # Converto uscita e now in timestamp
+            now_timestamp = now.timestamp()
+            data_uscita_timestamp = data_uscita.timestamp()
+            #Differenza in minuti:
+            differenza_minuti = (data_uscita_timestamp  - now_timestamp) / 60
+            differenza_minuti -= 60
+            print("Differenza minuti: ", differenza_minuti)
 
-                if ora_uscita > 23:
-                    ora_uscita -= 24
+            if differenza_minuti <= 0:
+                messaggio_success = "Cosa fai ancora qui? E' ora di andare a casa!"
+                messaggio_info = None
+                messaggio_danger = None
+                messaggio_warning = None
+            elif differenza_minuti > 0 and differenza_minuti <= 60:
+                messaggio_success = "Manca poco, tieni duro!"
+                messaggio_info = None
+                messaggio_danger = None
+                messaggio_warning = None
+            elif differenza_minuti > 60 and differenza_minuti <= 240:
+                messaggio_warning = "Ne hai ancora per un pò, buon lavoro!"
+                messaggio_success = None
+                messaggio_info = None
+                messaggio_danger = None
+            else:
+                messaggio_danger = "La giornata è ancora lunga, datti da fare!"
+                messaggio_warning = None
+                messaggio_success = None
+                messaggio_info = None
 
     else:
         print('Form non popolato')
         form = Ingresso()
 
-    print("Ora di Uscita:", ora_uscita)
-    print("Minuti di Uscita:", minuti_uscita)
-
-    uscita = Uscita(ora_uscita, minuti_uscita)
-
     return render(request,
                   'homepage.html',
                   { 'form': form,
-                            'uscita': uscita})
+                            'uscita': data_uscita,
+                            'messaggio_info': messaggio_info,
+                            'messaggio_warning':messaggio_warning,
+                            'messaggio_danger': messaggio_danger,
+                            'messaggio_success': messaggio_success})
 
-class Uscita:
-    def __init__(self, ora_uscita, minuti_uscita):
-        self.ora_uscita = ora_uscita
-        self.minuti_uscita = minuti_uscita
