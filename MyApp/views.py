@@ -1,11 +1,55 @@
 from datetime import datetime, timedelta
-from django.shortcuts import render
 
-from MyApp.models import Ingresso
+from django.contrib import messages
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+
+from MyApp.models import Ingresso, RegisterForm, LoginForm
 
 
 # Create your views here.
-def homepage(request):
+def registrazione(request):
+    if request.method == 'GET':
+        form = RegisterForm()
+        return render(request, 'registrazione.html', {'form': form})
+
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.username = user.username.lower()
+            user.save()
+            messages.success(request, 'Registrazione completata correttamente!')
+            login(request, user)
+            return redirect('login')
+        else:
+            return render(request, 'registrazione.html', {'form': form})
+
+
+def sign_in(request):
+    if request.method == 'GET':
+        form = LoginForm()
+        return render(request, 'login.html', {'form': form})
+
+    elif request.method == 'POST':
+        form = LoginForm(request.POST)
+
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+            if user:
+                login(request, user)
+                messages.success(request, f'Ciao {username.title()}, bentornato!')
+                return redirect('calcolauscita')
+
+        # form is not valid or user is not authenticated
+        messages.error(request, f'Username o password non validi')
+        return render(request, 'login.html', {'form': form})
+
+@login_required
+def calcolauscita(request):
     data_uscita = datetime.now()
     messaggio_info = "Compila il form e premi il pulsante \'Quando Esco?\'"
     messaggio_success = None
@@ -38,7 +82,7 @@ def homepage(request):
             data_uscita_timestamp = data_uscita.timestamp()
             #Differenza in minuti:
             differenza_minuti = (data_uscita_timestamp  - now_timestamp) / 60
-            differenza_minuti -= 60
+            #differenza_minuti -= 60
             print("Differenza minuti: ", differenza_minuti)
 
             if differenza_minuti <= 0:
@@ -67,7 +111,7 @@ def homepage(request):
         form = Ingresso()
 
     return render(request,
-                  'homepage.html',
+                  'calcolauscita.html',
                   { 'form': form,
                             'uscita': data_uscita,
                             'messaggio_info': messaggio_info,
