@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
 
 from django.contrib import messages
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
-from MyApp.models import Ingresso, RegisterForm, LoginForm
+from MyApp.forms import Ingresso, RegisterForm, LoginForm, GiornataForm
+from MyApp.models import Giornata
 
 
 # Create your views here.
@@ -42,14 +43,33 @@ def sign_in(request):
             if user:
                 login(request, user)
                 messages.success(request, f'Ciao {username.title()}, bentornato!')
-                return redirect('calcolauscita')
+                return redirect('calcola_uscita')
 
         # form is not valid or user is not authenticated
         messages.error(request, f'Username o password non validi')
         return render(request, 'login.html', {'form': form})
 
+def sign_out(request):
+    logout(request)
+    messages.success(request,f'Utente disconnesso correttamente.')
+    return redirect('login')
+
+@login_required()
+def homepage(request):
+    # Ottieni l'utente loggato
+    user = request.user
+
+    # Recupera le ultime 5 giornate dell'utente in ordine cronologico discendente
+    giornate = Giornata.objects.filter(user=user).order_by('-data')[:5]
+
+    # Passa le giornate al template
+    return render(request, 'homepage.html', {
+        'user': user,
+        'giornate': giornate,
+    })
+
 @login_required
-def calcolauscita(request):
+def calcola_uscita(request):
     data_uscita = datetime.now()
     messaggio_info = "Compila il form e premi il pulsante \'Quando Esco?\'"
     messaggio_success = None
@@ -90,12 +110,12 @@ def calcolauscita(request):
                 messaggio_info = None
                 messaggio_danger = None
                 messaggio_warning = None
-            elif differenza_minuti > 0 and differenza_minuti <= 60:
+            elif 0 < differenza_minuti <= 60:
                 messaggio_success = "Manca poco, tieni duro!"
                 messaggio_info = None
                 messaggio_danger = None
                 messaggio_warning = None
-            elif differenza_minuti > 60 and differenza_minuti <= 240:
+            elif 60 < differenza_minuti <= 240:
                 messaggio_warning = "Ne hai ancora per un pò, buon lavoro!"
                 messaggio_success = None
                 messaggio_info = None
@@ -111,7 +131,7 @@ def calcolauscita(request):
         form = Ingresso()
 
     return render(request,
-                  'calcolauscita.html',
+                  'calcola_uscita.html',
                   { 'form': form,
                             'uscita': data_uscita,
                             'messaggio_info': messaggio_info,
@@ -119,3 +139,30 @@ def calcolauscita(request):
                             'messaggio_danger': messaggio_danger,
                             'messaggio_success': messaggio_success})
 
+@login_required()
+def salva_giornata(request):
+    if request.method == 'GET':
+        print('GET')
+        context = {'form': GiornataForm()}
+        return render(request, 'salva_giornata.html', context)
+    elif request.method == 'POST':
+        print('POST')
+        form = GiornataForm(request.POST)
+        if form.is_valid():
+            print('FORM VALID')
+            # Controlla se esiste già un record per l'utente e la data
+            user = request.user
+            data = form.cleaned_data['data']
+            if Giornata.objects.filter(user=user, data=data).exists():
+                messages.error(request, f"Esiste già un record per il giorno {data}!")
+                return redirect('salva_giornata')  # Ritorna al form con l'errore
+
+            # Aggiunge l'utente user presente nella request all'oggetto giornata prima di salvarlo
+            giornata = form.save(commit=False)  # Non salvare ancora nel database
+            giornata.user = request.user  # Assegna l'utente loggato
+            giornata.save()  # Salva l'oggetto con l'utente
+            return redirect('salva_giornata')
+        else:
+            print('FORM NOT VALID')
+            print(form.errors)  # Stampa errori di validazione per debug
+            return render(request, 'salva_giornata.html', {'form': form})

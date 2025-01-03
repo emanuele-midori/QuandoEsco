@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>QuandoEsco Salva Giornata</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container-fluid">
+            <a class="navbar-brand" href="#">User <b>{{ user.username }}</b></a>
+        <div class="d-flex">
+          <a href="{% url 'homepage' %}" class="btn btn-submit">Homepage</a>
+        </div>
+        <div class="d-flex">
+          <a href="{% url 'calcola_uscita' %}" class="btn btn-submit">CalcolaUscita</a>
+        </div>
+        <div class="d-flex">
+          <a href="{% url 'salva_giornata' %}" class="btn btn-submit">SalvaGiornata</a>
+        </div>
+        <div class="d-flex">
+          <a href="{% url 'logout' %}" class="btn btn-outline-danger">Logout</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h1>Salva Giornata</h1>
+                </div>
+                <div class="card-body">
+
+                    <!-- Se ci sono messaggi, mostralo in un banner rosso (alert-danger) -->
+                    {% if messages %}
+                        <div class="alert alert-danger" role="alert">
+                            {% for message in messages %}
+                                <p>{{ message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary w-100">Salva</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
