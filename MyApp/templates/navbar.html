@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Navbar</title>
+</head>
+<body>
+
+ <!-- Barra di navigazione con il pulsante di logout in alto a destra -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <div class="d-flex">
+           <a class="navbar-brand">User: <b>{{ user.username }}</b></a>
+        </div>
+        <div class="d-flex">
+          <a href="{% url 'homepage' %}" class="btn btn-primary">Homepage</a>
+        </div>
+        <div class="d-flex">
+          <a href="{% url 'calcola_uscita' %}" class="btn btn-success">Calcola Uscita</a>
+        </div>
+        <div class="d-flex">
+          <a href="{% url 'salva_giornata' %}" class="btn btn-success">Salva Giornata</a>
+        </div>
+        <div class="d-flex">
+          <a href="{% url 'logout' %}" class="btn btn-warning">Logout</a>
+        </div>
+      </div>
+    </nav>
+</body>
+</html>

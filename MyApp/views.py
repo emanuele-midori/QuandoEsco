@@ -23,7 +23,7 @@ def registrazione(request):
             user.save()
             messages.success(request, 'Registrazione completata correttamente!')
             login(request, user)
-            return redirect('login')
+            return redirect('homepage')
         else:
             return render(request, 'registrazione.html', {'form': form})
 
@@ -43,7 +43,7 @@ def sign_in(request):
             if user:
                 login(request, user)
                 messages.success(request, f'Ciao {username.title()}, bentornato!')
-                return redirect('calcola_uscita')
+                return redirect('homepage')
 
         # form is not valid or user is not authenticated
         messages.error(request, f'Username o password non validi')
@@ -75,6 +75,7 @@ def calcola_uscita(request):
     messaggio_success = None
     messaggio_danger = None
     messaggio_warning = None
+    scroll_to_bottom = False
 
     if request.method == 'POST':
         form = Ingresso(request.POST)
@@ -126,6 +127,8 @@ def calcola_uscita(request):
                 messaggio_success = None
                 messaggio_info = None
 
+            scroll_to_bottom = True
+
     else:
         print('Form non popolato')
         form = Ingresso()
@@ -137,7 +140,9 @@ def calcola_uscita(request):
                             'messaggio_info': messaggio_info,
                             'messaggio_warning':messaggio_warning,
                             'messaggio_danger': messaggio_danger,
-                            'messaggio_success': messaggio_success})
+                            'messaggio_success': messaggio_success,
+                            'scroll_to_bottom': scroll_to_bottom,  # Variabile per trigger dello scroll
+                    })
 
 @login_required()
 def salva_giornata(request):
@@ -159,10 +164,54 @@ def salva_giornata(request):
 
             # Aggiunge l'utente user presente nella request all'oggetto giornata prima di salvarlo
             giornata = form.save(commit=False)  # Non salvare ancora nel database
+            # calcolo ore di lavoro
+            ingresso = form.cleaned_data['ingresso']
+            uscita = form.cleaned_data['uscita']
+            minuti_pausa = form.cleaned_data['minuti_pausa']
+
+            # Crea due oggetti datetime combinando la data con i time
+            ingresso_datetime = datetime.combine(data, ingresso)
+            uscita_datetime = datetime.combine(data, uscita)
+
+            #uscita deve essere successiva a ingresso
+            # Verifica se l'uscita è successiva all'ingresso
+            if uscita_datetime <= ingresso_datetime:
+                print("Errore: l'uscita deve essere successiva all'ingresso!")
+                messages.warning(request, f"Errore: l'uscita deve essere successiva all'ingresso.")
+                return render(request, 'salva_giornata.html', {'form': form})
+
+            # Calcola la differenza in minuti totali
+            differenza_minuti = int((uscita_datetime - ingresso_datetime).total_seconds() / 60)
+
+            # Sottrai i minuti di pausa
+            differenza_effettiva_minuti = differenza_minuti - minuti_pausa
+
+            #la differenza in minuti tra uscita e ingresso deve essere maggiore dei minuti di pausa
+            if differenza_effettiva_minuti <=0:
+                print("Errore: la pausa non può durare più del turno di lavoro!.")
+                messages.warning(request, f"Errore: la pausa non può durare più del turno di lavoro!.")
+                return render(request, 'salva_giornata.html', {'form': form})
+
+            # Calcola ore e minuti
+            ore_lavorate, minuti_lavorati = divmod(differenza_effettiva_minuti, 60)
+
+            print(f"Differenza effettiva: {ore_lavorate} ore e {minuti_lavorati} minuti")
+
             giornata.user = request.user  # Assegna l'utente loggato
+            giornata.ore_lavorate = ore_lavorate
+            giornata.minuti_lavorati = minuti_lavorati
             giornata.save()  # Salva l'oggetto con l'utente
+            messages.success(request, f"Giornata di lavoro salvata per il giorno {data} "
+                                      f"<br>Ingresso: {ingresso.strftime('%H:%M')}, "
+                                      f"<br>Uscita: {uscita.strftime('%H:%M')}, "
+                                      f"<br>Ore Lavorate: {ore_lavorate} h, "
+                                      f"<br>Minuti Lavorati: {minuti_lavorati} min, "
+                                      f"<br>Minuti di Pausa: {minuti_pausa} min ")
+            print(f"Differenza effettiva: {ore_lavorate} ore e {minuti_lavorati} minuti")
+
             return redirect('salva_giornata')
         else:
             print('FORM NOT VALID')
             print(form.errors)  # Stampa errori di validazione per debug
+            messages.warning(request, f"Form non valido!")
             return render(request, 'salva_giornata.html', {'form': form})

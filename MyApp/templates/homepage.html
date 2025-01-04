@@ -9,62 +9,50 @@
 <body>
 
 {% block content %}
-  <div class="container mt-5">
-    <!-- Barra di navigazione con il pulsante di logout in alto a destra -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">User: <b>{{ user.username }}</b> !</a>
-        <div class="d-flex">
-          <a href="{% url 'logout' %}" class="btn btn-outline-danger">Logout</a>
-        </div>
-      </div>
-    </nav>
+    <div class="container mt-5">
+
+    {% include "navbar.html" %}
 
     <!-- Messaggio di benvenuto -->
     <div class="alert alert-info text-center mt-4">
-      <h3>Benvenuto, {{ user.username }}!</h3>
-      <p>Qui puoi visualizzare e gestire le tue giornate lavorative.</p>
+        <h3>Benvenuto, {{ user.username }}!</h3>
+        <p>Qui puoi visualizzare e gestire le tue giornate lavorative.</p>
     </div>
 
     <!-- Tabella delle ultime 5 giornate -->
     <div class="card mt-4">
-      <div class="card-header">
-        <h5 class="mb-0">Ultime 5 Giornate Registrate</h5>
-      </div>
-      <div class="card-body">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Ingresso</th>
-              <th>Uscita</th>
-              <th>Ore Lavorate</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for giornata in giornate %}
-              <tr>
-                <td>{{ giornata.data }}</td>
-                <td>{{ giornata.ingresso }}</td>
-                <td>{{ giornata.uscita }}</td>
-                <td>{{ giornata.ore_lavorate }}</td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="4" class="text-center">Nessuna giornata registrata.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+        <div class="card-header">
+            <h5 class="mb-0">Ultime 5 Giornate Registrate</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Ingresso</th>
+                    <th>Uscita</th>
+                    <th>Ore Lavorate</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for giornata in giornate %}
+                    <tr>
+                        <td>{{ giornata.data }}</td>
+                        <td>{{ giornata.ingresso }}</td>
+                        <td>{{ giornata.uscita }}</td>
+                        <td>{{ giornata.ore_lavorate }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">Nessuna giornata registrata.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
     </div>
 
-    <!-- Bottoni per navigare verso le pagine -->
-    <div class="d-flex justify-content-between mt-4">
-      <a href="{% url 'calcola_uscita' %}" class="btn btn-primary btn-lg">Calcola Uscita</a>
-      <a href="{% url 'salva_giornata' %}" class="btn btn-success btn-lg">Salva Giornata</a>
-    </div>
-  </div>
 {% endblock %}
 <!-- Bootstrap JS and dependencies -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

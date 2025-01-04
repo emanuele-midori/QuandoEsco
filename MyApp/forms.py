@@ -48,20 +48,16 @@ class RegisterForm(UserCreationForm):
 class GiornataForm(forms.ModelForm):
     class Meta:
         model = Giornata
-        fields = ['data', 'ingresso', 'uscita', 'ore_lavorate', 'minuti_lavorati', 'minuti_pausa']
+        fields = ['data', 'ingresso', 'uscita', 'minuti_pausa']
         labels = {
             'data': 'Data',
             'ingresso': 'Ora di ingresso',
             'uscita': 'Ora di uscita',
-            'ore_lavorate': 'Ore lavorate',
-            'minuti_lavorati': 'Minuti lavorati',
             'minuti_pausa': 'Minuti di pausa',
         }
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'ingresso': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'uscita': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
-            'ore_lavorate': forms.NumberInput(attrs={'class': 'form-control'}),
-            'minuti_lavorati': forms.NumberInput(attrs={'class': 'form-control'}),
             'minuti_pausa': forms.NumberInput(attrs={'class': 'form-control'}),
         }
