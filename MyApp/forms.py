@@ -61,3 +61,18 @@ class GiornataForm(forms.ModelForm):
             'uscita': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'minuti_pausa': forms.NumberInput(attrs={'class': 'form-control'}),
         }
+
+class ModificaGiornataForm(forms.ModelForm):
+    class Meta:
+        model = Giornata
+        fields = ['ingresso', 'uscita', 'minuti_pausa']
+        labels = {
+            'ingresso': 'Ora di ingresso',
+            'uscita': 'Ora di uscita',
+            'minuti_pausa': 'Minuti di pausa',
+        }
+        widgets = {
+            'ingresso': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'uscita': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'minuti_pausa': forms.NumberInput(attrs={'class': 'form-control'}),
+        }

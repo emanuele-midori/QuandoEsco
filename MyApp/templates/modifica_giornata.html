@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>QuandoEsco Modifica Giornata</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+    {% include "navbar.html" %}
+
+    <div class="card">
+        <div class="card-header text-center">
+            <h1>Modifica Giornata</h1>
+        </div>
+        <div class="card-body">
+
+            <!-- Se ci sono messaggi di errore, mostralo in un banner rosso (alert-danger) -->
+            {% if messages %}
+                <div>
+                    {% for message in messages %}
+                        {% if "error" in message.tags %}
+                            <div class="alert alert-danger" role="alert">
+                                <p>{{ message }}</p>
+                            </div>
+                        {% endif %}
+                        {% if "warning" in message.tags %}
+                            <div class="alert alert-warning" role="alert">
+                                <p>{{ message }}</p>
+                            </div>
+                        {% endif %}
+                        {% if "success" in message.tags %}
+                            <div class="alert alert-success" role="alert">
+                                <p>{{ message | safe}}</p>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary w-100">Modifica</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -9,4 +9,8 @@ urlpatterns = [
     path('', views.homepage, name='homepage'),
     path('calcolauscita/', views.calcola_uscita, name='calcola_uscita'),
     path('salvagiornata/', views.salva_giornata, name='salva_giornata'),
+    path('registro/', views.registro, name='registro'),
+    path('modificagiornata/<int:id>/', views.modifica_giornata, name='modifica_giornata'),
+    path('eliminagiornata/<int:id>/', views.elimina_giornata, name='elimina_giornata'),
+
 ]

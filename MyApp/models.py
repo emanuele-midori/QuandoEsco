@@ -16,3 +16,12 @@ class Giornata(models.Model):
 
     def __str__(self):
         return str(self.data) + ' - Ingresso: ' + str(self.ingresso) + ' - Uscita: ' + str(self.uscita)
+
+class Turno(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    ore_lavoro = models.IntegerField(default=0)  # Ore del turno
+    minuti_lavoro = models.IntegerField(default=0)  # Minuti del turno
+    minuti_pausa = models.IntegerField(default=0)  # Minuti di pausa
+
+    def __str__(self):
+        return f"Turno di {self.user.username}: {self.ore_lavoro} ore, {self.minuti_lavoro} minuti, pausa {self.minuti_pausa} minuti"

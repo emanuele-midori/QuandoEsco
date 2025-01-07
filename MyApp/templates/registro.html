@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>QuandoEsco Registro</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+
+{% block content %}
+    <div class="container mt-5">
+
+        {% include "navbar.html" %}
+
+        <!-- Messaggio di benvenuto -->
+        <div class="alert alert-info text-center mt-4">
+            <h3>Registro</h3>
+            <p>Qui puoi visualizzare e gestire le tue giornate lavorative.</p>
+        </div>
+
+        <!-- Se ci sono messaggi di errore, mostralo in un banner rosso (alert-danger) -->
+        {% if messages %}
+            <div class="d-flex justify-content-center mt-4">
+                {% for message in messages %}
+                    {% if "error" in message.tags %}
+                        <div class="alert alert-danger" role="alert">
+                            <p>{{ message }}</p>
+                        </div>
+                    {% endif %}
+                    {% if "warning" in message.tags %}
+                        <div class="alert alert-warning" role="alert">
+                            <p>{{ message }}</p>
+                        </div>
+                    {% endif %}
+                    {% if "success" in message.tags %}
+                        <div class="alert alert-success" role="alert">
+                            <p>{{ message | safe }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Form per selezionare mese e anno -->
+        <div class="d-flex justify-content-center mt-4">
+            <form method="get" class="form-inline" id="filtroForm">
+                <label for="mese" class="mr-2">Mese:</label>
+                <select name="mese" id="mese" class="form-control mr-3">
+                    {% for numero, nome in mesi %}
+                        <option value="{{ numero }}" {% if numero == mese_selezionato %}selected{% endif %}>
+                            {{ nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <label for="anno" class="mr-2">Anno:</label>
+                <select name="anno" id="anno" class="form-control mr-3">
+                    {% for anno in anni %}
+                        <option value="{{ anno }}" {% if anno == anno_selezionato %}selected{% endif %}>
+                            {{ anno }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        <!-- Tabella delle giornate -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Giornate lavorative</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Ingresso</th>
+                        <th>Uscita</th>
+                        <th>Ore Lavoro</th>
+                        <th>Minuti Lavoro</th>
+                        <th>Minuti Pausa</th>
+                        <th>Azioni</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for giornata in giornate %}
+                        <tr>
+                            <td>{{ giornata.data | date:'d-m-Y' }}</td>
+                            <td>{{ giornata.ingresso | time:'H:i' }}</td>
+                            <td>{{ giornata.uscita | time:'H:i' }}</td>
+                            <td>{{ giornata.ore_lavorate }}</td>
+                            <td>{{ giornata.minuti_lavorati }}</td>
+                            <td>{{ giornata.minuti_pausa }}</td>
+                            <td>
+                                <!-- Pulsante Modifica con icona della matita -->
+                                <a href="{% url 'modifica_giornata' giornata.id %}" class="btn btn-sm btn-warning"
+                                   title="Modifica">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                <!-- Pulsante Elimina con icona del cestino -->
+                                {% csrf_token %}
+                                <button class="btn btn-danger btn-sm"
+                                        onclick="openDeleteModal('{% url 'elimina_giornata' giornata.id %}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">Nessuna giornata registrata.</td>
+                        </tr>
+                    {% endfor %}
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            <div class="text-center mt-4">
+                                <a href="{% url 'salva_giornata' %}"
+                                   class="btn btn-success rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                   style="width: 40px; height: 40px; position: relative; bottom: +20px;">
+                                    <i class="bi bi-plus" style="font-size: 24px; color: white;"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tabella riepilogo -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Riepilogo del mese</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Ore Lavoro</th>
+                        <th>Minuti Lavoro</th>
+                        <th>Ore Pausa</th>
+                        <th>Minuti Pausa</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>{{ ore_lavoro_tot }}</td>
+                        <td>{{ minuti_lavoro_tot }}</td>
+                        <td>{{ ore_pausa_tot }}</td>
+                        <td>{{ minuti_pausa_tot }}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal di conferma eliminazione -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteLabel">Conferma Eliminazione</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Sei sicuro di voler eliminare questa giornata?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Elimina</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- Script per aggiornare automaticamente i dati una volta selezionato anno o mese-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('filtroForm');
+        const meseSelect = document.getElementById('mese');
+        const annoSelect = document.getElementById('anno');
+
+        // Aggiungi l'evento 'change' su entrambi i campi
+        meseSelect.addEventListener('change', function () {
+            form.submit();
+        });
+
+        annoSelect.addEventListener('change', function () {
+            form.submit();
+        });
+    });
+</script>
+<script>
+    function openDeleteModal(deleteUrl) {
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        confirmDeleteBtn.href = deleteUrl; // Imposta il link di eliminazione
+        $('#confirmDeleteModal').modal('show'); // Mostra il modal
+    }
+</script>
+</body>
+</html>
